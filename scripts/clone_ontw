@@ -1,0 +1,5 @@
+duplicate target database to 'ontw' from active database SPFILE
+parameter_value_convert 'prod','ontw','PROD','ONTW'
+set control_files='/u02/oradata/ONTW/controlfile/o1_mf_hgb9nfnd_.ctl','/u03/oradata/ONTW/controlfile/o1_mf_hgb9nfns_.ctl'
+set db_name='ontw'
+NOFILENAMECHECK;

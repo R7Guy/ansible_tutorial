@@ -1,0 +1,4 @@
+alter database mount;
+restore database;
+recover database;
+alter database open resetlogs;

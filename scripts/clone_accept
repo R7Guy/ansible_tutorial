@@ -1,0 +1,5 @@
+duplicate target database to 'accept' from active database SPFILE
+parameter_value_convert 'prod','accept','PROD','ACCEPT'
+set control_files='/u02/oradata/ACCEPT/controlfile/o1_mf_hgb9nfnd_.ctl','/u03/oradata/ACCEPT/controlfile/o1_mf_hgb9nfns_.ctl'
+set db_name='accept'
+NOFILENAMECHECK;
