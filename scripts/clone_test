@@ -1,5 +1,0 @@
-duplicate target database to 'test' from active database SPFILE
-parameter_value_convert 'prod','test','PROD','TEST'
-set control_files='/u02/oradata/TEST/controlfile/o1_mf_hgb9nfnd_.ctl','/u03/oradata/TEST/controlfile/o1_mf_hgb9nfns_.ctl'
-set db_name='test'
-NOFILENAMECHECK;
