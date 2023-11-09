@@ -1,0 +1,7 @@
+startup nomount;
+set dbid=454849453;
+restore spfile;
+shutdown immediate;
+startup nomount;
+restore controlfile;
+exit;

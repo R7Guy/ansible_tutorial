@@ -1,0 +1,161 @@
+#!/bin/bash
+###############################################################################
+# Program       : clone_ontw.sh
+# Description   : Creates db clone from prod to ontw database
+# Author        : Reyaz Alibux
+# Date          : 2020-06-22
+################################################################################
+# v1.0.0  2020-06-22 Reyaz Alibux initial Version
+# v1.0.2    
+# v1.0.3  
+################################################################################
+# Oracle Settings
+export TMP=/tmp
+export TMPDIR=$TMP
+export ORACLE_HOSTNAME=nlmpdldb02
+export ORACLE_BASE=/u01/app/oracle
+export ORACLE_HOME=$ORACLE_BASE/product/19.0.0/dbhome_1
+export TNS_ADMIN=$ORACLE_HOME/network/admin
+export PATH=/usr/sbin:/usr/local/bin:$PATH
+export PATH=$ORACLE_HOME/bin:$PATH
+export LD_LIBRARY_PATH=$ORACLE_HOME/lib:/lib:/usr/lib
+export CLASSPATH=$ORACLE_HOME/jlib:$ORACLE_HOME/rdbms/jlib
+export ORACLE_SID=ontw
+export LOG_DIR=/home/oracle/log
+LOG_FILE="${LOG_DIR}/CLONE_ONTW_$(date +%Y_%m_%d).log"
+export TARGET_DB=prod
+#LIST="reyaz.alibux@cgi.com j.schmeltz@cgi.com john.timmer@cgi.com peter.verschoor@cgi.com javid.sharifi@cgi.com cihan.ceylan@cgi.com ron.vanden.bulk@cgi.com"
+LIST="NL.GEN.Oracle-DBA@cgi.com"
+
+#begin
+> ${LOG_FILE}
+echo "begin" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+
+#check target db
+echo "Checking target db" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+tnsping ${TARGET_DB}
+if [ "$?" -ne 0 ]; then
+  echo "${TARGET_DB} is not UP" >> ${LOG_FILE}
+  exit 1
+fi
+
+#shutdown database
+echo "shutdown destination database" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+sqlplus '/as sysdba'<<EOF >> ${LOG_FILE}
+select name, open_mode from v\$database ;
+shut abort
+exit
+EOF
+
+#check if database is down
+echo "check if destination database is down" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+ps -ef|grep -i pmon_$ORACLE_SID
+if [ "$?" -ne 0 ]; then
+  echo "database is not down" >> ${LOG_FILE}
+  exit 1
+fi
+
+#cleanup database files 
+echo "cleanup database files" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+cd /tmp && rm -rf $ORACLE_HOME/dbs/spfile$ORACLE_SID.ora
+cd /tmp && rm -rf /u02/oradata/ONTW/datafile/*.dbf
+cd /tmp && rm -rf /u02/oradata/ONTW/controlfile/*.ctl
+cd /tmp && rm -rf /u03/oradata/ONTW/controlfile/*.ctl
+cd /tmp && rm -rf /u02/oradata/ONTW/onlinelog/*.log
+cd /tmp && rm -rf /u03/oradata/ONTW/onlinelog/*.log
+cd /tmp && rm -rf /u02/oradata/ONTW/datafile/*.tmp
+
+##drop database
+#echo "drop destination database" >> ${LOG_FILE}
+#echo >> ${LOG_FILE}
+#sqlplus '/as sysdba'<<EOF1 >> ${LOG_FILE}
+#startup mount exclusive restrict;
+#drop database;
+#exit
+#EOF1
+
+#create db directories
+echo "create directories" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+cd /tmp
+ if [ "$?" -ne 0 ]; then
+  echo "cd naar temp gaat fout" >> ${LOG_FILE}
+  exit 1
+fi
+
+mkdir -p /u01/app/oracle/admin/ontw/adump
+mkdir -p /u02/oradata/ONTW/controlfile
+mkdir -p /u03/oradata/ONTW/controlfile
+
+##create pfile
+#echo "db_name=$ORACLE_SID" > $ORACLE_HOME/dbs/init$ORACLE_SID.ora
+
+#checkpfile
+echo "check destination pfile" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+PFILE=$ORACLE_HOME/dbs/init$ORACLE_SID.ora
+if [[ ! -f "$PFILE" ]]; then
+    echo "$PFILE does not exist" >> ${LOG_FILE}
+    exit 1
+fi
+
+#check_passwd_file
+echo "check destination password file" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+FILE=$ORACLE_HOME/dbs/orapw$ORACLE_SID
+if [[ ! -f "$FILE" ]]; then
+    echo "$FILE does not exist" >> ${LOG_FILE}
+    exit 1
+fi
+
+#startup nomount
+echo "startup nomount destination database" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+sqlplus '/as sysdba'<<EOF2 >> ${LOG_FILE}
+startup nomount
+exit
+EOF2
+
+##perform full backup of source database
+#echo "perform full backup of source database" >> ${LOG_FILE}
+#echo >> ${LOG_FILE}
+#rman<<EOF3 >> ${LOG_FILE}
+#connect target sys/acGbeheer#01@prod
+#backup database plus archivelog;
+#exit;
+#EOF3
+
+#perform clone
+echo "performing clone" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+rman<<EOF4 >> ${LOG_FILE}
+connect target sys/jsuD190gU62jW9@prod
+connect auxiliary sys/jsuD190gU62jW9@ontw
+@/home/oracle/scripts/clone_ontw
+EOF4
+
+#put database in noarchivelog mode
+echo "put database in noarchivelog mode" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+sqlplus '/as sysdba'<<EOF5 >> ${LOG_FILE}
+@/home/oracle/scripts/noarchivelog.sql
+exit
+EOF5
+
+#perform post_clone_ontw script
+echo "post_clone_ontw" >> ${LOG_FILE}
+echo >> ${LOG_FILE}
+sqlplus '/as sysdba'<<EOF6 >> ${LOG_FILE}
+@/home/oracle/scripts/post_clone_ontw.sql
+@/home/oracle/scripts/ONTW_Directories.sql
+exit
+EOF6
+
+mailx -s "DB_Clone_MPD_ONTW" -a ${LOG_FILE} ${LIST} < /home/oracle/bin/clone_ontw.txt
+#mailx -s "Clone_$ORACLE_SID" reyaz.alibux@cgi.nl < ${LOG_FILE}
+

@@ -1,0 +1,5 @@
+duplicate target database to 'pre' from active database SPFILE
+parameter_value_convert 'prod','pre','PROD','PRE'
+set control_files='/u02/oradata/PRE/controlfile/o1_mf_hgb9nfnd_.ctl','/u03/oradata/PRE/controlfile/o1_mf_hgb9nfns_.ctl'
+set db_name='pre'
+NOFILENAMECHECK;
