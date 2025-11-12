@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: install httpd package
+    dnf:
+      name: httpd.x86_64 
