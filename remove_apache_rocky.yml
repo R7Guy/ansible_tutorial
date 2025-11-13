@@ -12,4 +12,4 @@
   - name: install httpd package
     dnf:
       name: httpd.x86_64 
-      state: latest
+      state: absent
