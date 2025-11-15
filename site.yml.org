@@ -6,15 +6,9 @@
 
    - name: install updates (Rocky)
      dnf:
-       name: "*" 
-       state: latest
-     when: ansible_distribution == "Rocky"
-
-   - name:  clean dnf cache (Rocky)
-     dnf:
-       name: "*"
-       state: latest
+       update_only: yes
        update_cache: yes
+       state: latest
      when: ansible_distribution == "Rocky"
 
    - name: install updates (Ubuntu)
@@ -22,11 +16,6 @@
        upgrade: dist
        update_cache: yes
      when: ansible_distribution == "Ubuntu"
-
-   - name: Reboot if needed
-     ansible.builtin.reboot: 
-       msg: "Reboot initiated by Ansible after updates"
-       reboot_timeout: 600
 
  - hosts: web_servers
    become: true
