@@ -5,12 +5,14 @@
    pre_tasks:
 
    - name: install updates (Rocky)
+     tags: always
      dnf:
        name: "*" 
        state: latest
      when: ansible_distribution == "Rocky"
 
    - name:  clean dnf cache (Rocky)
+     tags: always
      dnf:
        name: "*"
        state: latest
@@ -18,21 +20,23 @@
      when: ansible_distribution == "Rocky"
 
    - name: install updates (Ubuntu)
+     tags: always
      apt:
        upgrade: dist
        update_cache: yes
      when: ansible_distribution == "Ubuntu"
 
-   - name: Reboot if needed
-     ansible.builtin.reboot: 
-       msg: "Reboot initiated by Ansible after updates"
-       reboot_timeout: 600
+#   - name: Reboot if needed
+#     ansible.builtin.reboot: 
+#       msg: "Reboot initiated by Ansible after updates"
+#       reboot_timeout: 600
 
  - hosts: web_servers
    become: true
    tasks:
  
    - name: install apache and php for Ubuntu servers
+     tags: reyaz
      apt:
        name:
          - apache2
@@ -41,6 +45,7 @@
      when: ansible_distribution == "Ubuntu"
  
    - name: install apache and php for Rocky servers
+     tags: reyaz,rocky,httpd
      dnf:
        name:
          - httpd
@@ -51,13 +56,16 @@
  - hosts: db_servers
    become: true
    tasks:
+
    - name: install mariadb package (Rocky)
+     tags: rocky,db,mariadb
      dnf:
        name: mariadb
        state: latest
      when: ansible_distribution == "Rocky"
 
    - name: install mariadb package (Ubuntu)
+     tags: db,mariadb,ubuntu
      apt:
        name: mariadb-server
        state: latest
@@ -68,6 +76,7 @@
    tasks:
 
    - name: install samba package
+     tags: samba
      package:
        name: samba
        state: latest 
