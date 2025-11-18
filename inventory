@@ -1,8 +1,12 @@
 [web_servers]
 webserver1
+webserver2
 
 [db_servers]
 dbserver1
 
 [file_servers]
 fileserver1
+
+#[workstations]
+#172.27.27.109
