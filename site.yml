@@ -4,27 +4,29 @@
    become: true
    pre_tasks:
 
-   - name: install updates (Rocky)
+   - name: update repo cache (Rocky)
      tags: always
      dnf:
-       name: "*" 
-       state: latest
-     when: ansible_distribution == "Rocky"
-
-   - name:  clean dnf cache (Rocky)
-     tags: always
-     dnf:
-       name: "*"
-       state: latest
        update_cache: yes
+     changed_when: false
      when: ansible_distribution == "Rocky"
 
-   - name: install updates (Ubuntu)
+   - name: update repo cache  (Ubuntu)
      tags: always
      apt:
-       upgrade: dist
        update_cache: yes
+     changed_when: false
      when: ansible_distribution == "Ubuntu"
+
+ - hosts: all
+   become: true
+   tasks:
+
+   - name: add ssh key for simone
+     tags: always
+     authorized_key:
+       user: simone
+       key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILiSvj2kES6z/itCwCumeQYGftCiXCdBMhQVCYmj495W ansible" 
 
 #   - name: Reboot if needed
 #     ansible.builtin.reboot: 
@@ -69,6 +71,30 @@
          - php
        state: latest
      when: ansible_distribution == "Rocky"
+   
+   - name: start httpd (Rocky and CentOS)
+     tags: apache,centos,rocky,httpd
+     service:
+       name: httpd
+       state: started
+       enabled: yes
+     when: ansible_distribution == "Rocky"
+
+   - name: change e-mail address for admin
+     tags: apache,centos,rocky,httpd
+     lineinfile:
+       path: /etc/httpd/conf/httpd.conf
+       regexp: '^ServerAdmin'
+       line: ServerAdmin somebody@somewhere.net
+     when: ansible_distribution == "Rocky"
+     register: httpd
+
+   - name: restart httpd (Rocky and CentOS)
+     tags: apache,centos,rocky,httpd
+     service:
+       name: httpd
+       state: restarted
+     when: httpd.changed
 
    - name:  copy default html file for site
      tags: apache,apache2,httpd
