@@ -9,4 +9,4 @@ dbserver1
 fileserver1
 
 #[workstations]
-#172.27.27.109
+#postgres_1
