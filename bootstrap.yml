@@ -7,7 +7,15 @@
    - name: install updates (Rocky)
      tags: always
      dnf:
-       update_only: yes 
+       name: "*" 
+       state: latest
+     when: ansible_distribution == "Rocky"
+
+   - name:  clean dnf cache (Rocky)
+     tags: always
+     dnf:
+       name: "*"
+       state: latest
        update_cache: yes
      when: ansible_distribution == "Rocky"
 
