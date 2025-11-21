@@ -26,6 +26,15 @@
        update_cache: yes
      when: ansible_distribution == "Ubuntu"
 
+   - name: install updates (CentOS)
+     tags: always
+     dnf:
+       update_only: yes
+       update_cache: yes
+     when: ansible_distribution == "CentOS"
+
+# Create and configure user simone to be the ansible user
+
  - hosts: all
    become: true
    tasks:
@@ -34,7 +43,7 @@
      tags: always
      user:
        name: simone
-       group: root 
+       groups: root 
 
    - name: add ssh key for simone
      tags: always

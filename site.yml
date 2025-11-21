@@ -18,6 +18,15 @@
      changed_when: false
      when: ansible_distribution == "Ubuntu"
 
+   - name: install updates (CentOS)
+     tags: always
+     dnf:
+       update_only: yes
+       update_cache: yes
+     when: ansible_distribution == "CentOS"
+
+#Placeholder to delete or change the key : state: absent
+
  - hosts: all
    become: true
    tasks:
@@ -71,14 +80,31 @@
          - php
        state: latest
      when: ansible_distribution == "Rocky"
+
+   - name: install apache and php for CentOS servers
+     tags: apache,centos,httpd
+     dnf:
+       name:
+         - httpd
+         - php
+       state: latest
+     when: ansible_distribution == "CentOS"
    
-   - name: start httpd (Rocky and CentOS)
-     tags: apache,centos,rocky,httpd
+   - name: start httpd (Rocky)
+     tags: apache,rocky,httpd
      service:
        name: httpd
        state: started
        enabled: yes
      when: ansible_distribution == "Rocky"
+
+   - name: start httpd (CentOS)
+     tags: apache,centos,httpd
+     service:
+       name: httpd
+       state: started
+       enabled: yes
+     when: ansible_distribution == "CentOS"
 
    - name: change e-mail address for admin
      tags: apache,centos,rocky,httpd

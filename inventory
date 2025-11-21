@@ -1,6 +1,7 @@
 [web_servers]
 webserver1
 webserver2
+#centos
 
 [db_servers]
 dbserver1
